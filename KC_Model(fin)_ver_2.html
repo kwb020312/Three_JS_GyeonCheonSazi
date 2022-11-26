@@ -1,0 +1,427 @@
+<html>
+<head>
+<title>WIPCO KC_Model</title>
+
+<style type="text/css">
+ body { margin: 0;}
+canvas {width: 100%; height: 100%; display: block;}
+     
+#w_txt1 { position: fixed; left: 93%; top: 92%; font-size: 10px; color: #303030;  text-align: center; pointer-events: none; opacity: 0.8; z-index: 1;}
+
+button {
+	cursor: pointer;
+	text-transform: uppercase;
+}
+a, button, input, select {
+	pointer-events: auto;
+} 
+
+.info{
+     color:#FFF;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba(0,0,0,0.0);
+    
+        
+    }
+    
+</style>
+
+</head>
+
+<body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/FBXLoader.js"></script>
+<script src="js/inflate.min.js"></script>
+<script src="js/Sky.js"></script>
+<script src="js/dat.gui.min.js"></script>
+<script src="js/tweenjs.js"></script>
+<script src="js/CSS2DRenderer.js"></script>
+
+
+<div id="w_txt1">
+    <button id="FS" style=" background-color: rgba( 255, 255, 255, 0.0 );position: relative; width:80%; height: 100%; border-style: none;"><img src="./images/full.png" alt="" style="width:100%;height: 100%;"></button><p style="font-size: 2px;"><b>Screen</b></p>
+</div>
+    
+<script>
+  var goFS = document.getElementById("FS");     
+  goFS.addEventListener("click", function() {
+      document.body.requestFullscreen();
+      document.exitFullscreen();
+  }, false);
+</script>
+        
+
+
+<script>
+        
+ var width = window.innerWidth;
+ var height = window.innerHeight;
+ var gui = new dat.GUI({width:200,zIndex:2});
+ var parm = {a: 'TIME', b: 420};
+ var scene = new THREE.Scene( );
+ var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100000);
+ 
+ camera.position.x = -200;
+ camera.position.y = 120;
+ camera.position.z = 0;
+ camera.lookAt(scene.position);
+    
+ camera.getEffectiveFOV();
+ var renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+ renderer.setSize(width, height);
+ document.body.appendChild( renderer.domElement );
+     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+ 
+ renderer.shadowMapEnabled = true;
+    
+ var labelRenderer = new THREE.CSS2DRenderer();
+ labelRenderer.setSize(width,height);
+ labelRenderer.domElement.style.position = 'absolute';
+ labelRenderer.domElement.style.top = '0';
+ document.body.appendChild( labelRenderer.domElement );
+  
+
+// 태양  
+var directlight = new THREE.DirectionalLight(0xffffff, 0.5, 3000);
+directlight.shadow.camera.near = 10;    
+directlight.shadow.camera.far = 2000;
+var shadowBlur = 50;
+directlight.shadowCameraLeft = -shadowBlur;
+directlight.shadowCameraRight = shadowBlur;
+directlight.shadowCameraTop = shadowBlur;
+directlight.shadowCameraBottom = -shadowBlur;
+directlight.shadow.mapSize = new THREE.Vector2(1024,1024);
+scene.add(directlight);
+ directlight.castShadow = true;
+//light
+ var ambientLight = new THREE.AmbientLight( 0xffffff, 1.2 );    
+    
+ var spotlight1 = new THREE.SpotLight(0xffffff, 0.5,500);
+ 
+ spotlight1.position.set(100,20,0);
+ spotlight1.lookAt(0,20,0);
+ scene.add(spotlight1);    
+ var spotlight2 = new THREE.SpotLight(0xffffff, 0.5,500);
+ var spotlight3 = new THREE.SpotLight(0xffffff, 0.5,500);
+ var spotlight4 = new THREE.SpotLight(0xffffff, 0.5,500);
+ spotlight2.position.set(0,10,100);
+ spotlight2.lookAt(0,20,0);
+ scene.add(spotlight2);    
+ spotlight3.position.set(0,20,-100);
+ spotlight3.lookAt(0,20,0);
+ scene.add(spotlight3);
+ spotlight4.position.set(-100,20,0);
+ spotlight4.lookAt(0,20,0);
+ scene.add(spotlight4);
+// 파노라마 스카이박스
+    
+    /*
+ var skygeometry = new THREE.SphereGeometry(2500, 32, 32);
+ var skymaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("test/DSC_5039 Panorama.jpg"), side: THREE.BackSide});
+ var skymesh = new THREE.Mesh(skygeometry, skymaterial); 
+ scene.add(skymesh);
+    */
+/*    
+//Fps
+        
+ (function(){var script=document.createElement('script');script.onload=function(){var stats=new  Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+*/
+//Camera controler set 
+
+ var controls = new THREE.OrbitControls( camera, labelRenderer.domElement );
+ controls.enablePan = true;
+ controls.zoomSpeed = 3;    
+ controls.rotateSpeed = 0.7;
+ controls.minDistance = 20;
+ controls.maxDistance = 200;
+ controls.maxPolarAngle = Math.PI/2;
+ controls. enableKeys = true;
+ controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+controls.keyPanSpeed = 15.0;
+    
+ //카메라기준 페닝으로 변경 
+controls.screenSpacePanning = true;
+    
+/*    
+
+//3차원 좌표    
+var axes = new THREE.AxesHelper(1000);
+                              // 길이
+scene.add(axes);
+
+var grideHelper = new THREE.GridHelper( 2000,100 );
+
+scene.add(grideHelper);
+
+*/    
+//Window resize
+ window.addEventListener('resize', function()
+{   var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    labelRenderer.setSize(width,height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	
+});    
+    
+
+//loading box
+    var loadingMaterials = 
+    [
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingW(fin).jpg'), side: THREE.DoubleSide}), //+x
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingW(fin).jpg'), side: THREE.DoubleSide}), //-x
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingB(fin).jpg'), side: THREE.DoubleSide}), //+y
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingB(fin).jpg'), side: THREE.DoubleSide}), //-y
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingW(fin).jpg'), side: THREE.DoubleSide}), //=z
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/LoadingW(fin).jpg'), side: THREE.DoubleSide}) //-Z  
+    ];
+
+    var loading = new THREE.Mesh( new THREE.BoxGeometry(80, 80, 80 ), loadingMaterials);
+    loading.position.set(0,0,0);
+    loading.rotation.z = 0;
+    
+//KC_Model
+   
+var FBXloader = new THREE.FBXLoader();
+  function FBX(){
+    FBXloader.load( './3Dfile/KC_MODEL1.fbx', function ( object ) {
+       
+    
+        object.scale.set(0.05, 0.05, 0.05);
+        object.rotation.set(-0.013,-0.03,-0.0093);
+        object.position.set(0,0.59,0);
+        
+        
+        object.traverse( function(child) {
+        if (child.isMesh) {
+      
+        child.castShadow = true;
+        child.receiveShadow = true; 
+
+
+           
+  }
+  });  
+  
+        scene.add(object); 
+        scene.add(floor);
+        scene.add(ambientLight);
+        scene.remove(loading);
+    },
+	// called when loading is in progresses
+	function ( xhr ) {
+        scene.add(loading);
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        scene.add(loading);
+        
+	},
+	// called when loading has errors
+	function ( error ) {
+    
+		console.log( 'FBXLoader failed' );
+        alert('FBXLoader Error');
+	});
+}
+    
+FBX();    
+    
+  
+
+// 바닥
+ var floor = new THREE.Mesh(new THREE.CubeGeometry(100,1,100), new THREE.MeshLambertMaterial({ map : new THREE.TextureLoader().load('images/gray4.jpg',function ( texture ) {
+    //바닥 x,y축를 기준으로 텍스쳐 10누기
+    floor.material.map.repeat.x= 3;
+    floor.material.map.repeat.y= 3;
+    floor.material.map.wrapS=THREE.RepeatWrapping;
+    floor.material.map.wrapT=THREE.RepeatWrapping; }), side: THREE.DoubleSide }));
+    floor.position.set(0,0,0);
+    floor.receiveShadow = true;
+    
+    
+//GUI
+ 
+
+   
+
+    
+//SKY
+    
+ var sky = new THREE.Sky();
+
+ sky.material.uniforms['turbidity'].value=10;
+ sky.material.uniforms['rayleigh'].value=2;
+ sky.material.uniforms['luminance'].value=1;
+ sky.material.uniforms['mieCoefficient'].value=0.005;
+ sky.material.uniforms['mieDirectionalG'].value=0.8;
+ 
+
+ var cubeCamera = new THREE.CubeCamera( 0.1, 1, 512 );
+ scene.background = cubeCamera.renderTarget;
+    
+ 
+ var xPath = -420;
+ var yPath = 580;       
+ var T = gui.addFolder('TIME');    
+ T.add(parm,'b').min(0).max(1000).step(20).name('TIME').onChange(function(){
+     xPath = -(parm.b);
+     yPath = -(parm.b) + 1000;
+ });
+     
+ 
+ directlight.position.x = xPath;
+ directlight.position.y = yPath;
+ directlight.position.z = 75;
+ sky.material.uniforms['sunPosition'].value = directlight.position.copy( directlight.position);    
+   
+ cubeCamera.update( renderer, sky );
+    
+document.addEventListener('click', onclick, false);
+    
+    function onclick(event) {
+    x = (event.clientX / window.innerWidth) * 2 - 1;
+    y = -(event.clientY / window.innerHeight) * 2 + 1;
+    dir = new THREE.Vector3(x, y, -1)
+    dir.unproject(camera)
+    
+    var ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize())
+    var intersects = ray.intersectObject(scene);
+    if ( intersects.length == 0 )
+    {
+         console.log(intersects.length);
+
+	     createjs.Tween.removeAllTweens(); 
+    }
+        
+    }
+document.addEventListener('dblclick', ondblclick, false);
+    
+    function ondblclick(event) {
+    x = (event.clientX / window.innerWidth) * 2 - 1;
+    y = -(event.clientY / window.innerHeight) * 2 + 1;
+    dir = new THREE.Vector3(x, y, -1)
+    dir.unproject(camera)
+    
+    var ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize())
+    var intersects = ray.intersectObject(scene);
+    if ( intersects.length == 0 )
+    {
+         console.log(intersects.length);
+
+	     createjs.Tween.removeAllTweens(); 
+        
+         createjs.Tween.get(camera.position,{loop:false})
+		.to({
+			x: -100, 
+			y: 80, 
+			z: 0
+		}, 3000, 
+		createjs.Ease.sineInOut)
+        
+        .wait(500)
+        
+        .to({
+             x:0, y:80,z:100
+         },3000,createjs.Ease.quartln)
+        
+        .wait(500)
+         .to({
+             x:100, y:80,z:0
+         },3000,createjs.Ease.quartln)
+        
+        .wait(500)
+        
+         .to({
+             x:0, y:80,z:-100
+         },3000,createjs.Ease.cubicln)
+        
+        .wait(500)
+        
+         .to({
+             x:-130, y:80,z:0
+         },3000,createjs.Ease.cubicln)
+        
+        
+        createjs.Tween.get(controls.target)
+		.to({
+			x: 0, 
+			y: 10, 
+			z: 0
+		}, 1200, 
+		createjs.Ease.sineInOut);
+        
+    }
+}
+
+ /*
+ //directional light helper
+var helper = new THREE.CameraHelper( directlight.shadow.camera );
+scene.add( helper );
+*/
+//logic
+ var update = function( )
+{
+
+    loading.rotation.x -=0.01;
+    loading.rotation.y -=0.015;
+    loading.rotation.z -=0.01;
+};
+// '<img src = "images/info.png" style="width= 10%;height=10%;"/>'; 
+var info = document.createElement( 'img' );
+                info.className = 'info';
+                info.style.width = '20';
+                info.style.height = '20';
+                info.style.opacity = '0.5';
+				info.src = "images/info.png"
+				info.style.marginTop = '-1em';
+                info.style.cursor = 'pointer';
+				var kcinfo = new THREE.CSS2DObject( info );
+				kcinfo.position.set( -12, 3, 0 );
+				floor.add( kcinfo );
+    
+info.addEventListener('click',function(){
+        
+   window.open("https://blog.naver.com/hdac2588/221945241828","popupNo1","width=1000, height=500, top = 200, left = 400, location = no, status = no, scrollbars = no, toolbars=no");
+        
+       
+    },false);   
+    
+ var render = function( )
+{
+    
+ directlight.position.x = xPath;
+ directlight.position.y = yPath; 
+ sky.material.uniforms['sunPosition'].value = directlight.position.copy( directlight.position);    
+ cubeCamera.update( renderer, sky );    
+ var time = Date.now()*0.000075
+ labelRenderer.render( scene, camera ); 
+ renderer.render( scene, camera );
+ 
+};
+
+    
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+    
+ controls.update();
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+
+loop();
+    
+</script>
+</body>
+</html>
